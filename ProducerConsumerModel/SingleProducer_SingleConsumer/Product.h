@@ -1,4 +1,4 @@
 #pragma once
 
 // ²úÆ·
-class Product {};
+class Product { };

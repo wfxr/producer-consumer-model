@@ -12,54 +12,58 @@ extern std::mutex stream_lock;
 // 生产者
 class Producer {
 public:
-	Producer(std::shared_ptr<Repository> repository, double produce_speed)
-		: _repository(repository) {
-		set_produce_speed(produce_speed);
-	}
+	Producer(std::shared_ptr<Repository>);
 
-	void set_produce_speed(double produce_speed) {
-		if (produce_speed <= 0.0)
-			throw std::logic_error("produce speed should be greater than 0.0");
-		_produce_speed = produce_speed;
-	}
+	void set_unit_cost(size_t);
 
-	// 等待仓库空位
-	void waitRepositoryVacancy(std::unique_lock<std::mutex>& lock) {
-		_repository->cv.wait(lock, [this] {return !_repository->full(); });
-	}
+	void wait_repository_vacancy(std::unique_lock<std::mutex>&);
 
-	void produce_one() {
-		std::unique_lock<std::mutex> repositoryLock(_repository->mutex);
+	void produce();
 
-		// 如果仓库已满则等待空位
-		while (_repository->full()) {
-			stream_lock.lock();
-			std::cout << "Producer is waiting for an empty slot..." << std::endl;
-			stream_lock.unlock();
-			waitRepositoryVacancy(repositoryLock);
-		}
-
-		// 开始生产，生产阶段不再占用repository
-		repositoryLock.unlock();
-		std::this_thread::sleep_for(std::chrono::milliseconds(unit_time_cost()));
-		auto newProduct = std::make_shared<Product>();
-
-		// 将产品放入仓库
-		repositoryLock.lock();
-		_repository->push(newProduct);
-	}
-	void produce(int count) {
-		for (auto i = 0; i < count; ++i) {
-			produce_one();
-			stream_lock.lock();
-			std::cout << "Product No." << i << " produced" << std::endl;
-			stream_lock.unlock();
-		}
-	}
-	size_t unit_time_cost() {
-		return static_cast<size_t>(1000 / _produce_speed);
-	}
+	void produce(int count);
 private:
 	std::shared_ptr<Repository> _repository;
-	double _produce_speed;
+	size_t _unit_cost = 1;
 };
+
+inline Producer::Producer(std::shared_ptr<Repository> repository)
+	: _repository(repository){
+}
+
+inline void Producer::set_unit_cost(size_t unit_cost) {
+	_unit_cost = unit_cost;
+}
+
+inline void Producer::wait_repository_vacancy(std::unique_lock<std::mutex>& lock) {
+	_repository->cv.wait(lock, [this] {return !_repository->full(); });
+}
+
+void Producer::produce() {
+	std::unique_lock<std::mutex> repositoryLock(_repository->mutex);
+
+	// 如果仓库已满则等待空位
+	if (_repository->full()) {
+		stream_lock.lock();
+		std::cout << "Producer is waiting for an empty slot..." << std::endl;
+		stream_lock.unlock();
+		wait_repository_vacancy(repositoryLock);
+	}
+
+	// 开始生产（生产阶段不再占用repository）
+	repositoryLock.unlock();
+	std::this_thread::sleep_for(std::chrono::milliseconds(_unit_cost));
+	auto newProduct = std::make_shared<Product>();
+
+	// 将产品放入仓库
+	repositoryLock.lock();
+	_repository->push(newProduct);
+}
+
+void Producer::produce(int count) {
+	for (auto i = 0; i < count; ++i) {
+		produce();
+		stream_lock.lock();
+		std::cout << "Product [" << i << "] produced" << std::endl;
+		stream_lock.unlock();
+	}
+}
