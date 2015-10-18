@@ -59,7 +59,7 @@ inline void Consumer::consume(int count) {
 	for (auto i = 0; i < count; ++i) {
 		consume();
 		stream_lock.lock();
-		std::cout << "\t" << i << " products consumed" << std::endl;
+		std::cout << "\t" << i + 1 << " products consumed" << std::endl;
 		stream_lock.unlock();
 	}
 }
