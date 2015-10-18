@@ -5,6 +5,7 @@
 * author: Wenxuan
 */
 #include <mutex>
+#include <vector>
 
 #include "Repository.h"
 #include "Producer.h"
@@ -22,19 +23,18 @@ int main() {
     Consumer consumer2(repository, "Consumer2");
 
     // 分别设定单位工作的耗时
-    producer.set_unit_cost(20);
-    consumer1.set_unit_cost(30);
-    consumer2.set_unit_cost(50);
+    producer.set_unit_cost(1000);
+    consumer1.set_unit_cost(3000);
+    consumer2.set_unit_cost(5000);
 
     // 创建并执行生产和消费线程
-    std::thread producer_thread([&producer] { producer.produce(5); });
-    std::thread consumer_thread1([&consumer1] { consumer1.consume(2); });
-    std::thread consumer_thread2([&consumer2] { consumer2.consume(3); });
+    std::vector<std::thread> threads;
+    threads.emplace_back([&producer] { producer.produce(20); });
+    threads.emplace_back([&consumer1] { consumer1.consume(6); });
+    threads.emplace_back([&consumer2] { consumer2.consume(14); });
 
     // 等待线程合并
-    producer_thread.join();
-    consumer_thread1.join();
-    consumer_thread2.join();
+    for (auto& th : threads) th.join();
 
     return 0;
 }
