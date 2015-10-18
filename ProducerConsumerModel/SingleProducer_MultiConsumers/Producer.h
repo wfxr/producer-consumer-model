@@ -43,18 +43,15 @@ void Producer::wait_repository_vacancy(std::unique_lock<std::mutex>& lock) {
 
 void Producer::produce(int count) {
     for (auto i = 0; i < count; ++i) {
+        auto newProduct = make_product();
+
+        // 创建一个仓库锁
         std::unique_lock<std::mutex> repositoryLock(_repository->mutex);
 
         // 如果仓库已满则等待空位
         if (_repository->full())
             wait_repository_vacancy(repositoryLock);
 
-        // 开始生产（生产阶段不再占用repository）
-        repositoryLock.unlock();
-        auto newProduct = make_product();
-
-        // 将产品放入仓库
-        repositoryLock.lock();
         _repository->push(newProduct);
     }
 }
