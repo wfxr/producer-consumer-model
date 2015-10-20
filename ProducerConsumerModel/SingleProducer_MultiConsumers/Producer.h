@@ -36,7 +36,7 @@ inline void Producer::set_unit_cost(size_t unit_cost) {
 
 void Producer::wait_repository_vacancy(std::unique_lock<std::mutex>& lock) {
     stream_lock.lock();
-    std::cout << "Producer: waiting vacancy..." << std::endl;
+    std::cout << "Producer is waiting for an empty slot..." << std::endl;
     stream_lock.unlock();
     _repository->cv.wait(lock, [this] {return !_repository->full(); });
 }

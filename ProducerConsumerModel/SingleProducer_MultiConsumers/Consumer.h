@@ -38,21 +38,17 @@ inline void Consumer::set_unit_cost(size_t unit_cost) {
 
 void Consumer::wait_product_arrival(std::unique_lock<std::mutex>& lock) {
     stream_lock.lock();
-    std::cout << "\t\t" << _name << ": waiting product..." << std::endl;
+    std::cout << "\t" << _name << " is waiting for products..." << std::endl;
     stream_lock.unlock();
     _repository->cv.wait(lock, [this] {return !_repository->empty(); });
 }
 
 void Consumer::consume_product(std::shared_ptr<Product> product) {
-    stream_lock.lock();
-    std::cout << "\t\t" << _name << ": [" << product->get_id() << "] got." << std::endl;
-    stream_lock.unlock();
-
     // 模拟消费耗时
     std::this_thread::sleep_for(std::chrono::milliseconds(_unit_cost));
 
     stream_lock.lock();
-    std::cout << "\t\t" << _name << ": [" << product->get_id() << "] consumed." << std::endl;
+    std::cout << "\t" << _name << ": [" << product->get_id() << "] consumed." << std::endl;
     stream_lock.unlock();
 }
 
