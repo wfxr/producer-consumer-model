@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <iostream>
+#include <thread>
 
 #include "Repository.h"
 #include "Product.h"
@@ -27,7 +28,7 @@ private:
 };
 
 inline Producer::Producer(std::shared_ptr<Repository> repository)
-	: _repository(repository){
+	: _repository(repository) {
 }
 
 inline void Producer::set_unit_cost(size_t unit_cost) {

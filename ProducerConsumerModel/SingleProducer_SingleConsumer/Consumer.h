@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <iostream>
+#include <thread>
 
 #include "Repository.h"
 #include "Product.h"

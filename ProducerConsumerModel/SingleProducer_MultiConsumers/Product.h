@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 // ²úÆ·
 class Product {
 public:
