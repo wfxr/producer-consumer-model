@@ -17,9 +17,10 @@ public:
 
     void set_unit_cost(size_t);
 
-    void wait_repository_vacancy(std::unique_lock<std::mutex>&);
+    void wait_repository_vacancy(std::unique_lock<std::mutex> &);
 
     void produce();
+
 private:
     std::shared_ptr<Product> make_product();
 
@@ -28,33 +29,35 @@ private:
     size_t _unit_cost = 1;
 };
 
-inline Producer::Producer(std::shared_ptr<Repository> repository, std::string name)
-    : _repository(repository), _name(name) {
-}
+inline Producer::Producer(std::shared_ptr<Repository> repository,
+                          std::string name)
+    : _repository(repository), _name(name) {}
 
 inline void Producer::set_unit_cost(size_t unit_cost) {
     _unit_cost = unit_cost;
 }
 
-void Producer::wait_repository_vacancy(std::unique_lock<std::mutex>& lock) {
+void Producer::wait_repository_vacancy(std::unique_lock<std::mutex> &lock) {
     stream_lock.lock();
-    std::cout << _name << " is waiting for an empty slog..." << std::endl;
+    std::cout << _name << " is waiting for an empty slot..." << std::endl;
     stream_lock.unlock();
-    _repository->cv.wait(lock, [this] {return !_repository->full(); });
+    _repository->producer_cv.wait(lock);
 }
 
 void Producer::produce() {
+    // 创建一个仓库锁
+    std::unique_lock<std::mutex> repositoryLock(_repository->mutex,
+                                                std::defer_lock);
+
     for (;;) {
         auto newProduct = make_product();
 
-        // 创建一个仓库锁
-        std::unique_lock<std::mutex> repositoryLock(_repository->mutex);
-
         // 如果仓库已满则等待空位
-        if (_repository->full())
-            wait_repository_vacancy(repositoryLock);
+        repositoryLock.lock();
+        if (_repository->full()) wait_repository_vacancy(repositoryLock);
 
         _repository->push(newProduct);
+        repositoryLock.unlock();
     }
 }
 
@@ -64,7 +67,8 @@ std::shared_ptr<Product> Producer::make_product() {
 
     auto product = std::make_shared<Product>();
     stream_lock.lock();
-    std::cout << _name << ": [" << product->get_id() << "] produced." << std::endl;
+    std::cout << _name << ": [" << product->get_id() << "] produced."
+              << std::endl;
     stream_lock.unlock();
     return product;
 }

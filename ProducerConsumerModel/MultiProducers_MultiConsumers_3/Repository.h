@@ -16,7 +16,8 @@ public:
     void push(std::shared_ptr<Product>& product);
     std::shared_ptr<Product> fetch();
 
-    std::condition_variable cv; // 条件变量，在库存发生变化时向调用者发送通知
+    std::condition_variable consumer_cv;
+    std::condition_variable producer_cv;
 private:
     std::queue<std::shared_ptr<Product>> _products; // 存储的产品
     size_t _storage; // 仓库容量
@@ -34,7 +35,7 @@ inline void Repository::push(std::shared_ptr<Product>& product) {
     if (full())
         throw std::overflow_error("repository is already full!");
     _products.push(product);
-    cv.notify_all();
+    consumer_cv.notify_one();
 }
 
 inline std::shared_ptr<Product> Repository::fetch() {
@@ -42,6 +43,6 @@ inline std::shared_ptr<Product> Repository::fetch() {
         throw std::underflow_error("repository is empty!");
     auto ret = _products.front();
     _products.pop();
-    cv.notify_all();
+    producer_cv.notify_one();
     return ret;
 }

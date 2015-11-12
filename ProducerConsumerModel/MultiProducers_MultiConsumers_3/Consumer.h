@@ -42,7 +42,7 @@ void Consumer::wait_product_arrival(std::unique_lock<std::mutex> &lock) {
     stream_lock.lock();
     std::cout << "\t" << _name << " is waiting for products..." << std::endl;
     stream_lock.unlock();
-    _repository->cv.wait(lock, [this] { return !_repository->empty(); });
+    _repository->consumer_cv.wait(lock);
 }
 
 void Consumer::consume_product(std::shared_ptr<Product> product) {
@@ -61,11 +61,13 @@ void Consumer::consume_product(std::shared_ptr<Product> product) {
 }
 
 void Consumer::consume() {
-    for (;;) {
-        // 创建仓库锁
-        std::unique_lock<std::mutex> repositoryLock(_repository->mutex);
+    // 创建仓库锁
+    std::unique_lock<std::mutex> repositoryLock(_repository->mutex,
+                                                std::defer_lock);
 
+    for (;;) {
         // 如果仓库无货则等待到货
+        repositoryLock.lock();
         if (_repository->empty()) wait_product_arrival(repositoryLock);
 
         // 开始消费，取得产品后释放仓库锁

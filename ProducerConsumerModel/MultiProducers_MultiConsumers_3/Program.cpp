@@ -27,11 +27,11 @@ int main() {
     Consumer consumer3(repository, "Consumer 3");
 
     // 分别设定单位工作的耗时
-    producer1.set_unit_cost(100);
-    producer2.set_unit_cost(50);
-    consumer1.set_unit_cost(80);
-    consumer2.set_unit_cost(100);
-    consumer3.set_unit_cost(150);
+    producer1.set_unit_cost(900);
+    producer2.set_unit_cost(500);
+    consumer1.set_unit_cost(800);
+    consumer2.set_unit_cost(1000);
+    consumer3.set_unit_cost(1500);
 
     // 创建并执行生产和消费线程
     std::vector<std::thread> threads;
