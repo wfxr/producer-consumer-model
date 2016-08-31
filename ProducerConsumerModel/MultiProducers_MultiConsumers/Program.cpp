@@ -10,6 +10,7 @@
 #include "Repository.h"
 #include "Producer.h"
 #include "Consumer.h"
+#include <future>
 
 std::mutex stream_lock; // 全局锁，保证cout的同步
 
@@ -31,16 +32,12 @@ int main() {
     consumer2.set_unit_cost(100);
     consumer3.set_unit_cost(150);
 
-    // 创建并执行生产和消费线程
-    std::vector<std::thread> threads;
-    threads.emplace_back([&producer1] { producer1.produce(20); });
-    threads.emplace_back([&producer2] { producer2.produce(30); });
-    threads.emplace_back([&consumer1] { consumer1.consume(20); });
-    threads.emplace_back([&consumer2] { consumer2.consume(20); });
-    threads.emplace_back([&consumer3] { consumer3.consume(10); });
-
-    // 等待线程合并
-    for (auto& th : threads) th.join();
+    // 异步执行生产和消费任务
+    auto p1 = std::async([&producer1] { producer1.produce(20); });
+    auto p2 = std::async([&producer2] { producer2.produce(30); });
+    auto c1 = std::async([&consumer1] { consumer1.consume(20); });
+    auto c2 = std::async([&consumer2] { consumer2.consume(20); });
+    auto c3 = std::async([&consumer3] { consumer3.consume(10); });
 
     return 0;
 }
