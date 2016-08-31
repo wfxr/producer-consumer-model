@@ -28,7 +28,7 @@
     <ClCompile Include="Program.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2BAD3C02-D3BE-4C1D-B067-C7EA69CA0CFD}</ProjectGuid>
+    <ProjectGuid>{1F3EBFA0-5E87-4C0E-9221-0D0D806F5189}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>MultiProducers_MultiConsumers</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>

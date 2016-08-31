@@ -4,6 +4,7 @@
 #include <mutex>
 #include <iostream>
 #include <thread>
+#include <string>
 
 #include "Repository.h"
 #include "Product.h"
